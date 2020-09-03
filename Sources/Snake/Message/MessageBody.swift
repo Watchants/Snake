@@ -329,6 +329,47 @@ extension MessageBody {
         }
         return promise.futureResult
     }
+    
+    public func read(_ handler: @escaping (Element) -> Void) {
+        switch storage {
+        case .empty:
+            handler(.end(nil))
+        case .buffer(let buffer):
+            handler(.bytes(buffer))
+            handler(.end(nil))
+        case .data(let data):
+            var buffer = ByteBufferAllocator().buffer(capacity: data.count)
+            buffer.writeBytes(data)
+            handler(.bytes(buffer))
+            handler(.end(nil))
+        case .string(let string):
+            var buffer = ByteBufferAllocator().buffer(capacity: string.count)
+            buffer.writeString(string)
+            handler(.bytes(buffer))
+            handler(.end(nil))
+        case .json(let json):
+            do {
+                let data = try JSONSerialization.data(withJSONObject: json, options: .fragmentsAllowed)
+                var buffer = ByteBufferAllocator().buffer(capacity: data.count)
+                buffer.writeBytes(data)
+                handler(.bytes(buffer))
+                handler(.end(nil))
+            } catch {
+                handler(.error(error))
+            }
+        case .stream(let stream):
+            stream.read { stream, element in
+                switch element {
+                case .bytes(let buffer):
+                    handler(.bytes(buffer))
+                case .error(let error):
+                    handler(.error(error))
+                case .end(let headers):
+                    handler(.end(headers))
+                }
+            }
+        }
+    }
 }
 
 extension MessageBody {
@@ -340,6 +381,12 @@ extension MessageBody {
         case string(String)
         case json(Any)
         case stream(MessageByteStream)
+    }
+    
+    public enum Element {
+        case bytes(ByteBuffer)
+        case error(Error)
+        case end(HTTPHeaders?)
     }
 
     public struct MBError: Error {
