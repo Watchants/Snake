@@ -114,6 +114,7 @@ open class URLS: URLSCodable, MessageDelegate {
         for item in self.delegators {
             delegators.append((paths + item.subpaths, item.element))
         }
+        suburls.append((paths, element))
         for item in self.suburls {
             suburls.append((paths + item.subpaths, item.element.element))
             item.element.elements(paths: paths + item.subpaths, suburls: &suburls, delegators: &delegators, handlers: &handlers)
