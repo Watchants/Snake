@@ -55,12 +55,15 @@ public class URLpatterns {
         if let handler = handlers[hashValue] {
             return handler
         }
-        
+
         var next = subpaths
-        while next.count > 0 {
+        while true {
             let hashValue = URLS.SubpathsHashValue(subpaths: next)
             if let suburl = suburls[hashValue] {
                 return suburl
+            }
+            if next.count <= 0 {
+                break
             }
             next.removeLast()
         }
