@@ -19,7 +19,7 @@ final class HandlePipeline: ChannelInboundHandler {
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let wrapOutOut = wrapOutboundOut
         let request = unwrapInboundIn(data)
-        let respond = application.urlPatterns.respond(path: request.head.uri)
+        let respond = application.urlPatterns.respond(path: request.uri.path)
         respond(request, context.channel).whenComplete { result in
             switch result {
             case .success(let response):

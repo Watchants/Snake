@@ -15,8 +15,13 @@ internal let UploadUrls = URLS(
         .delegate(path: "file", delegate: FileExample.self),
     ],
     handlers: [
-    ]
-)
+    ]) { request, channel in
+    
+    let promise = channel.eventLoop.makePromise(of: MessageResponse.self)
+    let response = MessageResponse(head: .init(version: .init(major: 2, minor: 0), status: .notFound), body: MessageBody(string: messageBody404HTML))
+    promise.succeed(response)
+    return promise.futureResult
+}
 
 struct FileExample : MessageDelegate {
     

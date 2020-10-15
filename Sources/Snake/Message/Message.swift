@@ -9,28 +9,49 @@ import NIO
 import NIOHTTP1
 
 public struct Message {
-    let request: MessageRequest
-    let response: MessageResponse
+    public let request: MessageRequest
+    public let response: MessageResponse
+}
+
+public struct MessageUri {
+    public let path: String
+    public let query: String
+    
+    init(head: HTTPRequestHead) {
+        let uri: [Character] = [Character](head.uri)
+        var path: [Character] = []
+        var query: [Character] = uri
+        for item in uri {
+            query.removeFirst()
+            guard item != "?" else { break }
+            path.append(item)
+        }
+        self.path = String(path)
+        self.query = String(query)
+    }
 }
 
 public struct MessageRequest {
     
     public let head: HTTPRequestHead
+    public let uri: MessageUri
     public let body: MessageBody
     
     public init(head: HTTPRequestHead, stream: MessageByteStream) {
         self.head = head
+        self.uri = MessageUri(head: head)
         self.body = MessageBody(stream: stream)
     }
     
     public init(head: HTTPRequestHead, body: MessageBody = MessageBody()) {
         self.head = head
+        self.uri = MessageUri(head: head)
         self.body = body
     }
 }
 
 public struct MessageResponse {
-    
+
     public let head: HTTPResponseHead
     public let body: MessageBody
     
